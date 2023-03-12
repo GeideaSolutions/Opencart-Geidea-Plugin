@@ -1,0 +1,50 @@
+<div class="buttons">
+    <div class="pull-right">
+        <input type="button" value="{{ button_confirm }}" id="button-confirm" class="btn btn-primary" />
+        <script src="https://www.merchant.geidea.net/hpp/geideapay.min.js" defer></script>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+    $('#button-confirm').bind('click', function() {
+         // window.location.href = window.location.origin + "/index.php?route=extension/static";
+        let chargeRequest = {};
+        chargeRequest.amount = '{{ paymentObject['amount'] }}';
+        chargeRequest.currency = '{{ paymentObject['currency'] }}';
+        chargeRequest.callbackUrl = '{{ paymentObject['callbackUrl'] }}';
+        chargeRequest.merchantReferenceId = '{{ paymentObject['merchantReferenceId'] }}';
+        chargeRequest.language = '{{ paymentObject['language'] }}';
+        chargeRequest.Platform = {};
+        chargeRequest.Platform.Name = 'Open Cart';
+        chargeRequest.Platform.Version = '{{ VERSION }}';
+        chargeRequest.Platform.PluginVersion = '1.1.1';
+        chargeRequest.Platform.type = 'OpenCart E-Commerce Platform';
+        chargeRequest.Platform.IntegrationType = 'Plugin';
+
+        let merchantKey = '{{ paymentObject['merchantKey']}}';
+        let onSuccess = successCallBack;
+        let onError = failureCallBack;
+        let onCancel = failureCallBack;
+
+        const payment = new GeideaApi(merchantKey, onSuccess, onError, onCancel);
+        payment.configurePayment(chargeRequest);
+        payment.startPayment();
+
+        function successCallBack(data) {
+            console.log('handle successful callback as desired, data', data);
+            const parseResult = new DOMParser().parseFromString('{{ paymentObject['returnUrl'] }}', "text/html");
+            const returnUrl = parseResult.documentElement.textContent;
+            document.location.href = returnUrl;
+        }
+
+        function failureCallBack(data) {
+            console.log('handle failure callback as desired, data', data);
+            document.location.href = '{{ paymentObject['cancelUrl'] }}';
+        }
+    });
+
+</script>
+
