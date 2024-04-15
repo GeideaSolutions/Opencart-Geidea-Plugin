@@ -1,0 +1,41 @@
+<div class="buttons">
+    <div class="pull-right">
+        <input type="button" value="{{ button_confirm }}" id="button-confirm" class="btn btn-primary" />
+         {% if payment_geidea_environment == 'EGY-PROD' %}<script src="https://www.merchant.geidea.net/hpp/geideaCheckout.min.js" defer></script>{% endif %}
+         {% if payment_geidea_environment == 'KSA-PROD' %}<script src="https://www.ksamerchant.geidea.net/hpp/geideaCheckout.min.js" defer></script>{% endif %}
+         {% if payment_geidea_environment == 'UAE-PROD' %}<script src="https://www.merchant.geidea.ae/hpp/geideaCheckout.min.js" defer></script>{% endif %}
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#button-confirm').bind('click', function() {
+        let onSuccess = successCallBack;
+        let onError = failureCallBack;
+        let onCancel = failureCallBack;
+
+        console.log("creating sesison")
+        let createSessionResponse = JSON.parse('{{ paymentObject['sessionData'] }}')
+        console.log("session created details", createSessionResponse)
+        if (createSessionResponse.responseCode !== '000') {
+             failureCallBack(createSessionResponse)
+        }
+        const payment = new GeideaCheckout(onSuccess, onError, onCancel);
+        payment.startPayment(createSessionResponse.session.id);
+
+        function successCallBack(data) {
+            console.log('handle successful callback as desired, data', data);
+            const parseResult = new DOMParser().parseFromString('{{ paymentObject['returnUrl'] }}', "text/html");
+            const returnUrl = parseResult.documentElement.textContent;
+            document.location.href = returnUrl;
+        }
+
+        function failureCallBack(data) {
+            console.log('handle failure callback as desired, data', data);
+            let alertMessage = (data.detailedResponseMessage) ? data.detailedResponseMessage : data.responseMessage
+            alert(alertMessage);
+            document.location.href = '{{ paymentObject['cancelUrl'] }}';
+        }
+    });
+</script>
+
