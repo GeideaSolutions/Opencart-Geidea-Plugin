@@ -47,7 +47,8 @@ class Geidea extends \Opencart\System\Engine\Controller
       $errors['code'] = 500;
       $errors['message'] = "No data provided";
       print json_encode($errors);
-      return false;
+      http_response_code(400);
+      die();
     }
 
     if (
@@ -103,15 +104,24 @@ class Geidea extends \Opencart\System\Engine\Controller
               error_log("yoo yeah -- sussesss --");
               $this->model_checkout_order->addHistory($merchantReferenceId, 5, 'Payment Successful for Geidea Order: ' . $orderId);
               $this->model_checkout_order->addHistory($merchantReferenceId, 5, 'Merchant reference Id: ' . $merchantReferenceId);
+              echo json_encode("Order is completed!");
+              http_response_code(200);
+              die();
               //FAIL CLOSE
             } elseif ($paymentStatus == 'CANCELLED' || $paymentStatus == 'EXPIRED') {
               $this->model_checkout_order->addHistory($merchantReferenceId, 16, 'Payment cancelled for Geidea Order Id: ' . $orderId);
               $this->model_checkout_order->addHistory($merchantReferenceId, 16, 'Merchant reference Id: ' . $merchantReferenceId);
               $this->model_checkout_order->addHistory($merchantReferenceId, 16, 'Cancellation Reason: ' . $processing_result);
+              echo json_encode("Payment Expired or Cancelled!");
+              http_response_code(200);
+              die();
             } elseif ($paymentStatus == 'FAILED') {
               $this->model_checkout_order->addHistory($merchantReferenceId, 10, 'Payment Failed for Geidea Order Id: ' . $orderId);
               $this->model_checkout_order->addHistory($merchantReferenceId, 10, 'Merchant reference Id: ' . $merchantReferenceId);
               $this->model_checkout_order->addHistory($merchantReferenceId, 10, 'Failure Reason: ' . $processing_result);
+              echo json_encode("Payment failed!");
+              http_response_code(200);
+              die();
             }
           } catch (Exception $e) {
             $params = array(
@@ -121,10 +131,23 @@ class Geidea extends \Opencart\System\Engine\Controller
             );
             ob_clean();
             print json_encode($params);
+            http_response_code(404);
             exit;
           }
+        } else {
+          echo json_encode("Invalid signature!");
+          http_response_code(400);
+          die();
         }
+      } else {
+        echo json_encode("Invalid merchantPublicKey!");
+        http_response_code(400);
+        die();
       }
+    } else {
+      echo json_encode("Order is not defined properly!");
+      http_response_code(400);
+      die();
     }
   }
 
@@ -301,8 +324,8 @@ class Geidea extends \Opencart\System\Engine\Controller
       ),
       'platform' => array(
         'name' => "Opencart",
-        'version' => "3.1.0",
-        'pluginVersion' => "3.1.0",
+        'version' => "3.2.0",
+        'pluginVersion' => "3.2.0",
         'partnerId' => "222",
       ),
       'signature' => $signature,
@@ -314,7 +337,7 @@ class Geidea extends \Opencart\System\Engine\Controller
     } elseif ($this->config->get('payment_geidea_environment') === 'KSA-PROD') {
       $createSessionUrl = 'https://api.ksamerchant.geidea.net/payment-intent/api/v2/direct/session';
     } elseif ($this->config->get('payment_geidea_environment') === 'UAE-PROD') {
-      $createSessionUrl = 'https://api.merchant.geidea.ae/payment-intent/api/v2/direct/session';
+      $createSessionUrl = 'https://api.geidea.ae/payment-intent/api/v2/direct/session';
     }
 
     $response = $this->sendGiRequest(

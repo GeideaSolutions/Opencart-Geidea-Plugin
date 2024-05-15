@@ -1,0 +1,224 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="submit" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary" onclick="dosubmit()"><i class="fas fa-save"></i></button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fas fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb['href'] }}">{{ breadcrumb['text'] }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}
+      <div class="alert alert-danger alert-dismissible"><i class="fas fa-exclamation-circle"></i> {{ error_warning }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endif %}
+    <div class="card">
+      <div class="card-header"><i class="fas fa-pencil-alt"></i> {{ text_edit }}</div>
+      <div class="card-body">
+        <form id="form_payment" form="form_payment" enctype="multipart/form-data" action="{{ save }}" method="post" data-oc-toggle="ajax">
+            {# Enabled / Disabled #}
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="input-status">{{ entry_status }}</label>
+                <div class="col-sm-2">
+                    <select name="payment_geidea_status" id="input-status" class="form-control">
+                        {% if payment_geidea_status %}
+                            <option value="1" selected="selected">{{ text_enabled }}</option>
+                            <option value="0">{{ text_disabled }}</option>
+                        {% else %}
+                            <option value="1">{{ text_enabled }}</option>
+                            <option value="0" selected="selected">{{ text_disabled }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            {# Environment #}
+            <div class="row mb-3 required">
+                <label class="col-sm-2 col-form-label" for="geidea_environment">{{ entry_environment }}</label> 
+                <div class="col-sm-2">
+                    <select id="geidea_environment" class="form-control" name="payment_geidea_environment" required="required">
+                        <option value="EGY-PROD" {% if payment_geidea_environment == 'EGY-PROD' %}selected{% endif %}>EGY-PROD</option>
+                        <option value="KSA-PROD" {% if payment_geidea_environment == 'KSA-PROD' %}selected{% endif %}>KSA-PROD</option>
+                        <option value="UAE-PROD" {% if payment_geidea_environment == 'UAE-PROD' %}selected{% endif %}>UAE-PROD</option>
+                    </select>
+                </div>
+            </div>
+
+            {# Merchant Public Key#}
+            <div class="row mb-3 required">
+                <label class="col-sm-2 col-form-label" for="payment_geidea_public_key_live"><span data-toggle="tooltip" title="{{ entery_public_key_live }}">{{ entery_public_key_live }}</span>
+                </label>
+                <div class="col-sm-10">
+                    <input id="geidea-public-key-live" class="form-control" type="text" name="payment_geidea_public_key_live" value="{{ payment_geidea_public_key_live }}" placeholder="{{ entery_public_key_live }}" size="60" required="required">
+                </div>
+            </div>
+
+            {# Merchant Password#}
+            <div class="row mb-3 required">
+                <label class="col-sm-2 col-form-label" for="payment_geidea_api_password_live"><span data-toggle="tooltip" title="{{ entery_api_password_live }}">{{ entery_api_password_live }}</span>
+                </label>
+                <div class="col-sm-10">
+                    <input id="geidea-api-password-live" class="form-control" type="text" name="payment_geidea_api_password_live" value="{{ payment_geidea_api_password_live }}" placeholder="{{ entery_api_password_live }}" size="60" required="required">
+                </div>
+            </div>
+
+            {# HPP Style #}
+            <div class="row mb-3 required">
+                <label class="col-sm-2 col-form-label" for="payment_geidea_hpp"><span data-toggle="tooltip" title="HPP Style">HPP Style</span>
+                </label>
+                <div class="col-sm-10">
+                    <select id="geidea_hpp" class="form-control" name="payment_geidea_hpp" required="required">
+                        <option value="Simple" {% if payment_geidea_hpp == 'Simple' %}selected{% endif %}>Simple</option>
+                        <option value="Compressed" {% if payment_geidea_hpp == 'Compressed' %}selected{% endif %}>Compressed</option>
+                    </select>
+                </div>
+            </div>
+
+            {# Header colour#}
+            <div class="row mb-3 ">
+                <label class="col-sm-2 col-form-label" for="payment_geidea_header_colour"><span data-toggle="tooltip" title="Header Color">Header Color</span>
+                </label>
+                <div class="col-sm-10">
+                    <input id="geidea-header-colour" class="form-control" type="text" name="payment_geidea_header_colour" value="{{ payment_geidea_header_colour }}" placeholder="Header Color" size="60">
+                </div>
+            </div>
+
+            {# Partner Id#}
+            <div class="row mb-3" style="display: none;">
+                <label class="col-sm-2 col-form-label" for="payment_geidea_partner_id"><span data-toggle="tooltip" title="Partner Id">Partner Id</span>
+                </label>
+                <div class="col-sm-10">
+                    <input id="geidea-partner-id" class="form-control" type="text" name="payment_geidea_partner_id" value="{{ payment_geidea_partner_id }}" placeholder="Partner Id" size="60">
+                </div>
+            </div>
+
+           {# Receipt Enabled #}
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="payment_geidea_receipt_enabled"><span data-toggle="tooltip" title="Receipt Enabled">Receipt Enabled</span>
+                </label>
+                <div class="col-sm-10">
+                    <select id="geidea_receipt_enabled" class="form-control" name="payment_geidea_receipt_enabled">
+                        <option value="no" {% if payment_geidea_receipt_enabled == 'no' %}selected{% endif %}>No</option>
+                        <option value="yes" {% if payment_geidea_receipt_enabled == 'yes' %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            {# Address Enabled #}
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="payment_geidea_address_enabled">
+                    <span data-toggle="tooltip" title="Address Enabled">Address Enabled</span>
+                </label>
+                <div class="col-sm-10">
+                    <select id="geidea_address_enabled" class="form-control" name="payment_geidea_address_enabled">
+                        <option value="no" {% if payment_geidea_address_enabled == 'no' %}selected{% endif %}>No</option>
+                        <option value="yes" {% if payment_geidea_address_enabled == 'yes' %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+            </div>
+ 
+             {# Email Enabled #}
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="payment_geidea_email_enabled"><span data-toggle="tooltip" title="Email Enabled">Email Enabled</span>
+                </label>
+                <div class="col-sm-10">
+                    <select id="geidea_email_enabled" class="form-control" name="payment_geidea_email_enabled">
+                        <option value="no" {% if payment_geidea_email_enabled == 'no' %}selected{% endif %}>No</option>
+                        <option value="yes" {% if payment_geidea_email_enabled == 'yes' %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+            </div>
+
+             {# Phone Number Enabled #}
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="payment_geidea_phone_enabled"><span data-toggle="tooltip" title="Phone Enabled">Phone Enabled</span>
+                </label>
+                <div class="col-sm-10">
+                    <select id="geidea_phone_enabled" class="form-control" name="payment_geidea_phone_enabled">
+                        <option value="no" {% if payment_geidea_phone_enabled == 'no' %}selected{% endif %}>No</option>
+                        <option value="yes" {% if payment_geidea_phone_enabled == 'yes' %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            {# merchant logo #}
+            <div class="row mb-3">
+            <label class="col-sm-2 col-form-label" for="payment_geidea_merchant_logo">Checkout Logo</label>
+            <div class="col-sm-10">
+                <input type="file" name="payment_geidea_merchant_logo" id="geidea_merchant_logo" value="test" class="form-control"/>
+                {% if payment_geidea_merchant_logo %}
+                    <input type="hidden" name="payment_geidea_merchant_logo" value="{{ payment_geidea_merchant_logo }}" />
+                        <img src="{{ image_url }}/image/{{ payment_geidea_merchant_logo }}" alt="Uploaded Image" style="max-width: 200px; max-height: 200px;" />
+                {% endif %}
+            </div>
+            </div>
+
+            {# Sort Order #}
+            <div class="row mb-3">
+            <label class="col-sm-2 col-form-label" for="input-sort-order">{{ entry_sort_order }}</label>
+            <div class="col-sm-10">
+                <input type="text" name="payment_geidea_sort_order" value="{{ payment_geidea_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
+            </div>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}
+
+<script>
+    function dosubmit() {
+        var merchant_id = $('#accept-merchant').val();
+        var geidea_public_key_sandbox = $('#geidea-public-key-sandbox').val();
+        var geidea_public_key_live = $('#geidea-public-key-live').val();
+        var geidea_api_password_live = $('#geidea-api-password-live').val();
+        var geidea_hpp = $('#geidea_hpp').val();
+        var method_name = $('#accept-method-name').val();
+        if (merchant_id === '' || merchant_id === null) {
+            $('#accept-merchant').focus();
+            return false;
+        }
+        if (geidea_public_key_sandbox === '' || geidea_public_key_sandbox === null) {
+            $('#geidea-public-key-sandbox').focus();
+            return false;
+        }
+        if (geidea_public_key_live === '' || geidea_public_key_live === null) {
+            $('#geidea-public-key-live').focus();
+            return false;
+        }
+        if (geidea_api_password_live === '' || geidea_api_password_live === null) {
+            $('#geidea-api-password-live').focus();
+            return false;
+        }
+        if (method_name === '' || method_name === null) {
+            $('#accept-method-name').focus();
+            return false;
+        }
+        // document.getElementById("form-payment").submit();
+        var form = document.getElementById("form_payment");
+        var formData = new FormData(form);
+
+        fetch(form.action, {
+        method: form.method,
+        body: formData
+        })
+        .then(function(response) {
+            console.log(response)
+            alert("Gediea Configs Saved Successfully");
+        })
+        .catch(function(error) {
+             console.log(error)
+            alert("Error! Saving Gediea Configs");
+        });
+
+    }
+</script>
