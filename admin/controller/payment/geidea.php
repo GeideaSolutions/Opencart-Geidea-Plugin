@@ -22,8 +22,8 @@ class Geidea extends \Opencart\System\Engine\Controller
             'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
         ];
         $data['breadcrumbs'][] = [
-            'text' => $this->language->get('text_extensions'),
-            'href' => $this->url->link('marketplace/opencart/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment')
+            'text' => $this->language->get('text_extension'),
+            'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment')
         ];
         $data['breadcrumbs'][] = [
             'text' => $this->language->get('heading_title'),

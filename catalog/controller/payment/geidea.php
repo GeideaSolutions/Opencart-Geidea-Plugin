@@ -126,8 +126,8 @@ class Geidea extends \Opencart\System\Engine\Controller
           } catch (Exception $e) {
             $params = array(
               'action' => 'fail',
-              'err_code' => $e->getCode(),
-              'err_msg' => $e->getMessage()
+              'err_code' => "404",
+              'err_msg' => "Order Id Is not Exist!"
             );
             ob_clean();
             print json_encode($params);
@@ -324,8 +324,8 @@ class Geidea extends \Opencart\System\Engine\Controller
       ),
       'platform' => array(
         'name' => "Opencart",
-        'version' => "3.2.0",
-        'pluginVersion' => "3.2.0",
+        'version' => "3.2.1",
+        'pluginVersion' => "3.2.1",
         'partnerId' => "222",
       ),
       'signature' => $signature,
