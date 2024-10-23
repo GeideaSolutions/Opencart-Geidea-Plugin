@@ -104,12 +104,7 @@ class Geidea extends \Opencart\System\Engine\Model
         $httpStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
         curl_close($ch);
-        $htmlHttpStatusCode = htmlspecialchars($httpStatusCode, ENT_QUOTES, 'UTF-8');
-        if ($httpStatusCode != 200) {
-            print_r("invalid HttpStatus:{$htmlHttpStatusCode} ,
-            response:$response,
-            detail_error:" . $error, $httpStatusCode);
-        }
+
         return $response;
     }
 

@@ -324,8 +324,8 @@ class Geidea extends \Opencart\System\Engine\Controller
       ),
       'platform' => array(
         'name' => "Opencart",
-        'version' => "3.2.1",
-        'pluginVersion' => "3.2.1",
+        'version' => "3.2.2",
+        'pluginVersion' => "3.2.2",
         'partnerId' => "222",
       ),
       'signature' => $signature,
