@@ -104,7 +104,7 @@ class Geidea extends \Opencart\System\Engine\Model
         $httpStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
         curl_close($ch);
-
+        
         return $response;
     }
 
