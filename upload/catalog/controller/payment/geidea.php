@@ -16,11 +16,15 @@ class Geidea extends \Opencart\System\Engine\Controller
     $order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
     $country = $this->model_localisation_country->getCountry($this->config->get('config_country_id'));
     $this->load->model('checkout/order');
+    $this->load->model('catalog/product');
     if (!isset($this->session->data['order_id'])) {
       return false;
     }
 
-    $sessionData = $this->createsession($order_info);
+    $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_product` WHERE order_id = '" . (int)$this->session->data['order_id'] . "'");
+    $order_products = $query->rows;
+
+    $sessionData = $this->createsession($order_info, $order_products);
     $viewData = [
       'paymentObject' => [
         'sessionData' => $sessionData,
@@ -66,7 +70,7 @@ class Geidea extends \Opencart\System\Engine\Controller
       $status = $data['order']['status'];
 
       $merchantPublicKey = $data['order']['merchantPublicKey'];
-      $amount = number_format($data['order']['amount'], '2', '.', '');
+      $amount = number_format($data['order']['amount'], 2, '.', '');
       $currency = $data['order']['currency'];
       $timeStamp = $data['timeStamp'];
 
@@ -258,8 +262,34 @@ class Geidea extends \Opencart\System\Engine\Controller
     return $paymentObject;
   }
 
-  public function createsession($order)
+  private function getAddressValues($add1, $add2)
   {
+    if (!empty($add1) && !empty($add2)) {
+      return $add1;
+    } elseif (empty($add1) && empty($add2)) {
+      return null;
+    } elseif (empty($add1)) {
+      return $add2;
+    } elseif (empty($add2)) {
+      return $add1;
+    }
+  }
+
+  public function createsession($order, $order_products)
+  {
+    $orderItems = array();
+    foreach ($order_products as $item) {
+      $tempItem = array(
+        "merchantItemId" => (string)$item['order_product_id'],
+        "name" => $item['name'],
+        "description" => $item['name'],
+        "categories" => "categories",
+        "count" => $item['quantity'],
+        "price" => number_format($item['price'], 2, '.', ''),
+        "sku" => $item['model'] ? (string)$item['model'] : (string)$item['order_product_id'],
+      );
+      $orderItems[] = $tempItem;
+    }
     $merchant_logo_url = null;
     if (!empty($this->config->get('payment_geidea_merchant_logo'))) {
       $baseURL = $this->config->get('config_url');
@@ -269,12 +299,13 @@ class Geidea extends \Opencart\System\Engine\Controller
     if (strpos($lang, 'ar')) $lang = 'ar';
     else $lang = 'en';
     $timestamp =  date("n/d/Y g:i:s A");
-    $signature = $this->generateSignature($this->config->get('payment_geidea_public_key_live'), number_format(round($order['total'], 2), 2), $order['currency_code'], (string) $order['order_id'], $this->config->get('payment_geidea_api_password_live'), $timestamp);
+    $signature = $this->generateSignature($this->config->get('payment_geidea_public_key_live'), number_format($order['total'], 2, '.', ''), $order['currency_code'], (string) $order['order_id'], $this->config->get('payment_geidea_api_password_live'), $timestamp);
     $sessionRequestPayload = array(
       'merchantPublicKey' => $this->config->get('payment_geidea_public_key_live'),
       'apiPassword' =>  $this->config->get('payment_geidea_api_password_live'),
       'callbackUrl' => $this->url->link('extension/geidea/payment/geidea%7Ccallback'),
-      'amount' => number_format(round($order['total'], 2), 2),
+      'returnUrl' => $this->url->link('checkout/checkout'),
+      'amount' => number_format($order['total'], 2, '.', ''),
       'currency' => $order['currency_code'],
       'language' => $lang,
       'timestamp' => $timestamp,
@@ -289,6 +320,8 @@ class Geidea extends \Opencart\System\Engine\Controller
         'setDefaultMethod' => false,
         'email' => !empty($order['email']) ? $order['email'] : null,
         'phoneNumber' => !empty($order['telephone']) ? $order['telephone'] : null,
+        "firstName" => $this->getAddressValues(isset($order['payment_firstname']) ? $order['payment_firstname'] : "", isset($order['shipping_firstname']) ? $order['shipping_firstname'] : ""),
+        "lastName" => $this->getAddressValues(isset($order['payment_lastname']) ? $order['payment_lastname'] : "", isset($order['shipping_lastname']) ? $order['shipping_lastname'] : ""),
         'address' => array(
           'billing' => array(
             'country' => !empty($order['payment_iso_code_3']) ? $order['payment_iso_code_3'] : null,
@@ -321,11 +354,12 @@ class Geidea extends \Opencart\System\Engine\Controller
       ),
       'order' => array(
         'integrationType' => 'Plugin',
+        "items" => $orderItems,
       ),
       'platform' => array(
         'name' => "Opencart",
-        'version' => "3.2.2",
-        'pluginVersion' => "3.2.2",
+        'version' => "3.3.0",
+        'pluginVersion' => "3.3.0",
         'partnerId' => "222",
       ),
       'signature' => $signature,
